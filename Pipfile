@@ -30,6 +30,7 @@ requests-mock = "*"
 pytest-postgresql = "*"
 flask-login = "*"
 structlog = "*"
+flask-saml2 = "*"
 
 [dev-packages]
 ipython = "*"

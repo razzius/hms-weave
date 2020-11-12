@@ -17,6 +17,9 @@ const instructions = (
       <Link to="/faculty-expectations">here</Link> for mentors or{' '}
       <Link to="/student-expectations">here</Link> for mentees.
     </p>
+    <p>
+      <a href="/saml/login">Login with HarvardKey (beta)</a>
+    </p>
   </div>
 )
 
