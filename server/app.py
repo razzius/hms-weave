@@ -107,37 +107,47 @@ def create_app():
     app.register_blueprint(views.api)
     app.register_blueprint(cli.blueprint)
 
-    SP_CERTIFICATE = certificate_from_string(
-        os.environ.get("SAML_SP_CERT").replace("|", "\n")
-    )
-    IDP_CERTIFICATE = certificate_from_string(
-        os.environ.get("SAML_IDP_CERT").replace("|", "\n")
-    )
-    PRIVATE_KEY = private_key_from_string(
-        os.environ.get("SAML_SP_KEY").replace("|", "\n")
-    )
-
-    app.config["SERVER_NAME"] = os.environ.get("WEAVE_SERVER_NAME")
-
-    app.config["SAML2_SP"] = {
-        "certificate": SP_CERTIFICATE,
-        "private_key": PRIVATE_KEY,
+    required_saml_envvars = {
+        "SAML_SP_CERT",
+        "SAML_IDP_CERT",
+        "SAML_SP_KEY",
+        "WEAVE_SERVER_NAME",
+        "SAML_ENTITY_ID",
+        "SAML_SSO_URL",
     }
 
-    app.config["SAML2_IDENTITY_PROVIDERS"] = [
-        {
-            "CLASS": "server.saml.X509IdPHandler",
-            "OPTIONS": {
-                # "display_name": "keycloak",
-                "entity_id": os.environ.get("SAML_ENTITY_ID"),
-                "sso_url": os.environ.get("SAML_SSO_URL"),
-                # "slo_url": "http://localhost:8080/auth/realms/master/protocol/saml",
-                "certificate": IDP_CERTIFICATE,
-            },
-        },
-    ]
+    if all(os.environ.get(var) is not None for var in required_saml_envvars):
+        SP_CERTIFICATE = certificate_from_string(
+            os.environ.get("SAML_SP_CERT").replace("|", "\n")
+        )
+        IDP_CERTIFICATE = certificate_from_string(
+            os.environ.get("SAML_IDP_CERT").replace("|", "\n")
+        )
+        PRIVATE_KEY = private_key_from_string(
+            os.environ.get("SAML_SP_KEY").replace("|", "\n")
+        )
 
-    sp = WeaveServiceProvider()
-    app.register_blueprint(sp.create_blueprint(), url_prefix="/saml/")
+        app.config["SERVER_NAME"] = os.environ.get("WEAVE_SERVER_NAME")
+
+        app.config["SAML2_SP"] = {
+            "certificate": SP_CERTIFICATE,
+            "private_key": PRIVATE_KEY,
+        }
+
+        app.config["SAML2_IDENTITY_PROVIDERS"] = [
+            {
+                "CLASS": "server.saml.X509IdPHandler",
+                "OPTIONS": {
+                    # "display_name": "keycloak",
+                    "entity_id": os.environ.get("SAML_ENTITY_ID"),
+                    "sso_url": os.environ.get("SAML_SSO_URL"),
+                    # "slo_url": "http://localhost:8080/auth/realms/master/protocol/saml",
+                    "certificate": IDP_CERTIFICATE,
+                },
+            },
+        ]
+
+        sp = WeaveServiceProvider()
+        app.register_blueprint(sp.create_blueprint(), url_prefix="/saml/")
 
     return app
