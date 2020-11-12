@@ -12,6 +12,7 @@ from .admin import init_admin
 from .emails import init_email
 from .models import db
 from .auth import login_manager
+from .views.api import save_verification_token
 from .queries import get_verification_email_by_email
 from . import views
 from . import cli
@@ -29,26 +30,25 @@ class NoCacheIndexFlask(Flask):
 
 class WeaveServiceProvider(ServiceProvider):
     def login_successful(self, auth_data, relay_state):
-        # user_id = auth_data.nameid
-        log.info("Got successful saml login", auth_data=auth_data)
+        email = auth_data.nameid
 
-        session["auth_data"] = auth_data
+        log.info("Got successful saml login", auth_data=auth_data.__dict__)
 
-        email = auth_data.attributes["email"]
+        session["auth_data_attributes"] = auth_data.attributes
 
         token = str(uuid.uuid4())
 
         verification_email = get_verification_email_by_email(email)
 
         if verification_email is None:
-            log.info('email not found', email=email)
+            log.info("email not found", email=email)
             # would be good to know if they were faculty or not
             return """
                 While harvardkey integration is in beta,
                 you must sign up using email before signing in with harvardkey
             """
 
-        verification_token = views.api.save_verification_token(
+        verification_token = save_verification_token(
             verification_email.id, token, is_personal_device=False
         )
 
@@ -62,7 +62,7 @@ class WeaveServiceProvider(ServiceProvider):
         return redirect("/")
 
     def get_auth_data_in_session(self):
-        return session["auth_data"]
+        return session["auth_data_attributes"]
 
     def is_user_logged_in(self):
         return flask_login.current_user.is_authenticated
