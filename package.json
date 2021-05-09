@@ -24,7 +24,7 @@
     "react-avatar": "^3.4.4",
     "react-avatar-editor": "^11.0.7",
     "react-beforeunload": "^2.1.0",
-    "react-dev-utils": "^7.0.0",
+    "react-dev-utils": "^11.0.4",
     "react-dom": "^16.3.2",
     "react-dropzone": "^4.2.9",
     "react-responsive": "^6.0.1",
